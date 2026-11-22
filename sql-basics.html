@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Quest — Learn SQL Basics the Fun Way</title>
+<style>
+:root{
+  --bg:#f6f7fb; --card:#ffffff; --ink:#1d2433; --muted:#5d6783; --line:#e3e7f1;
+  --accent:#6c5ce7; --accent2:#00b8a9; --warn:#f59f00; --bad:#e8505b; --good:#2bb673;
+  --code-bg:#0f1629; --code-ink:#e6ebff;
+  --kw:#ff7eb6; --fn:#78dce8; --str:#a9dc76; --num:#ffd866; --cm:#7f8bb3;
+  --shadow:0 6px 24px rgba(40,50,90,.08);
+}
+[data-theme="dark"]{
+  --bg:#0c1020; --card:#151b30; --ink:#e8ecff; --muted:#9aa5c8; --line:#262e4d;
+  --accent:#8f84ff; --accent2:#2ee6d1; --code-bg:#080b17; --shadow:0 6px 24px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;font-size:17px}
+h1,h2,h3{line-height:1.2;margin:0 0 .5em}
+a{color:var(--accent)}
+code,pre{font-family:Consolas,"Cascadia Code",Menlo,monospace}
+p code,li code,td code,.card code{background:rgba(108,92,231,.12);padding:.1em .4em;border-radius:6px;font-size:.9em}
+
+/* top bar */
+#top{position:fixed;inset:0 0 auto 0;height:56px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 16px;z-index:100}
+#top .logo{font-weight:800;font-size:1.1rem;letter-spacing:.3px}
+#top .logo span{color:var(--accent)}
+#menuBtn{display:none;background:none;border:0;font-size:1.5rem;color:var(--ink);cursor:pointer}
+.spacer{flex:1}
+#xpBox{display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:600}
+#xpBar{width:120px;height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+#xpFill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s}
+.iconBtn{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:6px 10px;cursor:pointer;font-size:1rem}
+#scroll{position:absolute;left:0;bottom:-1px;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+
+/* sidebar */
+#side{position:fixed;top:56px;bottom:0;left:0;width:250px;overflow:auto;background:var(--card);border-right:1px solid var(--line);padding:16px 10px;z-index:90}
+#side a{display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;text-decoration:none;color:var(--muted);font-size:.93rem;font-weight:600}
+#side a:hover{background:var(--bg);color:var(--ink)}
+#side a.on{background:linear-gradient(90deg,rgba(108,92,231,.18),transparent);color:var(--accent)}
+#side .grp{font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:14px 12px 4px}
+main{margin-left:250px;padding:56px 24px 80px}
+.wrap{max-width:880px;margin:0 auto}
+
+/* hero */
+.hero{margin-top:20px;padding:44px 34px;border-radius:26px;color:#fff;background:linear-gradient(135deg,#6c5ce7 0%,#00b8a9 100%);position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.hero h1{font-size:2.6rem;margin-bottom:.3em}
+.hero p{font-size:1.1rem;max-width:560px;opacity:.95}
+.hero .bubbles span{position:absolute;font-family:Consolas,monospace;opacity:.18;font-size:1.4rem;font-weight:700;animation:float 8s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-14px) rotate(4deg)}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{background:rgba(255,255,255,.2);padding:6px 14px;border-radius:99px;font-size:.88rem;font-weight:600;backdrop-filter:blur(4px)}
+
+/* sections */
+section{margin-top:56px}
+section>h2{font-size:1.9rem;display:flex;align-items:center;gap:12px}
+section>h2 .num{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--accent);color:#fff;font-size:1rem}
+.lead{color:var(--muted);font-size:1.05rem;margin-top:-.2em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow);margin:18px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.callout{border-left:5px solid var(--accent);background:rgba(108,92,231,.09);padding:14px 18px;border-radius:0 14px 14px 0;margin:18px 0}
+.callout.tip{border-color:var(--accent2);background:rgba(0,184,169,.1)}
+.callout.warn{border-color:var(--warn);background:rgba(245,159,0,.12)}
+.callout.bad{border-color:var(--bad);background:rgba(232,80,91,.1)}
+.callout b.t{display:block;margin-bottom:2px}
+
+/* jargon tooltips */
+.j{border-bottom:2px dotted var(--accent);cursor:help;position:relative;font-weight:600;color:var(--accent)}
+.j:hover::after,.j:focus::after{content:attr(data-tip);position:absolute;left:50%;bottom:130%;transform:translateX(-50%);width:max-content;max-width:min(280px,70vw);background:#1d2433;color:#fff;font-weight:400;font-size:.85rem;line-height:1.45;padding:9px 12px;border-radius:10px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.35);white-space:normal;text-align:left}
+.j:hover::before,.j:focus::before{content:"";position:absolute;left:50%;bottom:112%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1d2433;z-index:60}
+
+/* code */
+pre.sql,pre.plain{background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:14px;overflow:auto;margin:14px 0 0;font-size:.93rem;line-height:1.6;position:relative}
+pre .kw{color:var(--kw);font-weight:700} pre .fn{color:var(--fn)} pre .str{color:var(--str)} pre .num{color:var(--num)} pre .cm{color:var(--cm);font-style:italic}
+.copy{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.12);border:0;color:#cfd6ff;border-radius:8px;padding:3px 9px;font-size:.75rem;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.25)}
+.out{margin:0 0 14px;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;overflow:auto;background:var(--card)}
+.out+*{margin-top:0}
+.outlabel{font-size:.72rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);padding:6px 14px 0}
+pre.sql + .out{margin-top:0}
+
+/* tables */
+table.t{border-collapse:collapse;width:100%;font-size:.92rem}
+table.t th{background:rgba(108,92,231,.14);text-align:left;padding:8px 12px;font-weight:700;white-space:nowrap}
+table.t td{padding:7px 12px;border-top:1px solid var(--line);white-space:nowrap}
+table.t tr:hover td{background:rgba(108,92,231,.06)}
+.null{background:rgba(232,80,91,.15);color:var(--bad);border-radius:6px;padding:0 6px;font-size:.78rem;font-weight:700}
+.tag{display:inline-block;font-size:.68rem;font-weight:800;padding:1px 6px;border-radius:6px;margin-left:5px;vertical-align:middle;color:#fff}
+.tag.pk{background:var(--warn)} .tag.fk{background:var(--accent2)}
+.tblname{font-weight:800;margin:10px 0 6px;display:flex;align-items:center;gap:8px}
+
+/* analogy */
+.analogy{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.analogy .a{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;box-shadow:var(--shadow)}
+.analogy .a .e{font-size:2rem}
+.analogy .a b{display:block}
+.analogy .a small{color:var(--muted)}
+
+/* labs */
+.lab{background:linear-gradient(180deg,rgba(108,92,231,.08),transparent);border:2px dashed var(--accent);border-radius:18px;padding:18px;margin:20px 0}
+.lab h3{margin:0 0 10px;display:flex;gap:8px;align-items:center}
+.lab .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
+.lab label{font-size:.82rem;font-weight:700;color:var(--muted)}
+select,input[type=text],input[type=number]{font:inherit;font-size:.92rem;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.cols label{display:inline-flex;gap:4px;align-items:center;background:var(--card);border:1px solid var(--line);padding:3px 10px;border-radius:99px;cursor:pointer;color:var(--ink)}
+.rowcount{font-size:.8rem;color:var(--muted);padding:6px 14px}
+
+/* buttons */
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:9px 18px;cursor:pointer;background:var(--accent);color:#fff;transition:transform .1s,filter .2s}
+.btn:hover{filter:brightness(1.1)} .btn:active{transform:scale(.96)}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.seg{display:inline-flex;border:2px solid var(--accent);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-weight:700;border:0;background:transparent;color:var(--accent);padding:7px 14px;cursor:pointer}
+.seg button.on{background:var(--accent);color:#fff}
+#venn{display:flex;justify-content:center}
+
+/* quiz */
+.quiz .q{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:12px 0}
+.quiz .q p{margin:0 0 10px;font-weight:600}
+.quiz .q pre{margin:0 0 12px}
+.opts{display:grid;gap:8px}
+.opt{font:inherit;text-align:left;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:9px 14px;cursor:pointer;transition:all .15s}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateX(3px)}
+.opt.good{border-color:var(--good);background:rgba(43,182,115,.15);animation:pop .4s}
+.opt.bad{border-color:var(--bad);background:rgba(232,80,91,.12);opacity:.7;animation:shake .35s}
+.why{margin-top:10px;font-size:.92rem;color:var(--muted);display:none}
+.why.show{display:block}
+@keyframes pop{50%{transform:scale(1.04)}}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.quizhead{display:inline-block;background:var(--accent);color:#fff;font-weight:800;font-size:.8rem;padding:3px 12px;border-radius:99px;letter-spacing:1px;text-transform:uppercase}
+
+/* games */
+.game{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin:20px 0;box-shadow:var(--shadow)}
+.game h3{display:flex;align-items:center;gap:10px}
+.pool,.answer{display:flex;flex-wrap:wrap;gap:8px;min-height:50px;padding:10px;border-radius:14px}
+.answer{background:var(--code-bg);margin-top:10px;border:2px dashed var(--cm);min-height:56px;flex-direction:column;align-items:flex-start}
+.pool{background:var(--bg);border:2px dashed var(--line)}
+.piece{font-family:Consolas,monospace;font-size:.88rem;background:var(--card);border:2px solid var(--accent);color:var(--ink);padding:5px 12px;border-radius:10px;cursor:pointer;user-select:none;transition:transform .12s}
+.piece:hover{transform:translateY(-2px)}
+.answer .piece{background:#1b2547;color:#e6ebff}
+.answer.ok{border-color:var(--good);border-style:solid} .answer.no{border-color:var(--bad);animation:shake .35s}
+.matchcols{display:grid;grid-template-columns:1fr 1.6fr;gap:12px}
+.mcol{display:grid;gap:8px;align-content:start}
+.mitem{font:inherit;font-size:.9rem;text-align:left;border:2px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 12px;border-radius:12px;cursor:pointer}
+.mitem:hover{border-color:var(--accent)} .mitem.sel{border-color:var(--accent);background:rgba(108,92,231,.18)}
+.mitem.done{border-color:var(--good);background:rgba(43,182,115,.15);cursor:default}
+.mitem.wrong{animation:shake .35s;border-color:var(--bad)}
+.msg{margin-top:10px;font-weight:700;min-height:1.5em}
+
+/* glossary */
+#gsearch{width:100%;padding:11px 16px;border-radius:14px;font-size:1rem;margin-bottom:14px}
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.flip{perspective:900px;height:170px;cursor:pointer}
+.flip .in{position:relative;width:100%;height:100%;transition:transform .55s;transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.flip .f,.flip .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;padding:14px;display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line);overflow:auto}
+.flip .f{background:var(--card);align-items:center;text-align:center;font-size:1.15rem;font-weight:800;box-shadow:var(--shadow)}
+.flip .f small{font-weight:500;color:var(--muted);font-size:.78rem;margin-top:6px}
+.flip .b{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;transform:rotateY(180deg);font-size:.88rem}
+.flip .b code{background:rgba(0,0,0,.25);padding:2px 6px;border-radius:6px;display:inline-block;margin-top:6px;font-size:.8rem}
+
+/* order of execution */
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0}
+.flow span{background:var(--accent);color:#fff;padding:6px 12px;border-radius:10px;font-weight:700;font-size:.85rem;font-family:Consolas,monospace}
+.flow i{color:var(--muted);font-style:normal}
+.flow.alt span{background:var(--accent2)}
+.cheat{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.cheat .card{margin:0}
+.cheat h4{margin:0 0 6px;color:var(--accent)}
+.cheat pre{margin:0;font-size:.82rem}
+
+footer{margin-top:60px;text-align:center;color:var(--muted);font-size:.9rem}
+#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,100px);background:#1d2433;color:#fff;padding:10px 20px;border-radius:99px;font-weight:700;transition:transform .35s;z-index:200}
+#toast.show{transform:translate(-50%,0)}
+
+@media(max-width:900px){
+  #menuBtn{display:block}
+  #side{transform:translateX(-100%);transition:transform .25s;box-shadow:var(--shadow)}
+  #side.open{transform:none}
+  main{margin-left:0;padding:56px 14px 60px}
+  .hero h1{font-size:2rem}
+  #xpBar{width:60px}
+  .matchcols{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header id="top">
+  <button id="menuBtn" aria-label="Menu">☰</button>
+  <div class="logo">SQL<span>Quest</span> 🧭</div>
+  <div class="spacer"></div>
+  <div id="xpBox"><span id="lvl">🐣 Rookie</span><div id="xpBar"><div id="xpFill"></div></div><span id="xpTxt">0 XP</span></div>
+  <button class="iconBtn" id="themeBtn" title="Toggle dark mode">🌙</button>
+  <div id="scroll"></div>
+</header>
+
+<nav id="side">
+  <div class="grp">Start here</div>
+  <a href="#intro">🌍 What is SQL?</a>
+  <a href="#tables">📋 Tables &amp; Sample Data</a>
+  <div class="grp">Reading data</div>
+  <a href="#select">🔍 SELECT</a>
+  <a href="#where">🎯 WHERE</a>
+  <a href="#order">↕️ ORDER BY &amp; LIMIT</a>
+  <a href="#aggregate">🧮 Aggregates</a>
+  <a href="#groupby">🗂️ GROUP BY &amp; HAVING</a>
+  <div class="grp">Changing data</div>
+  <a href="#dml">✏️ INSERT / UPDATE / DELETE</a>
+  <a href="#ddl">🏗️ CREATE &amp; Data Types</a>
+  <div class="grp">Connecting data</div>
+  <a href="#keys">🔑 Keys</a>
+  <a href="#joins">🔗 JOINs</a>
+  <div class="grp">Be a pro</div>
+  <a href="#safety">🛡️ SQL Injection</a>
+  <a href="#cheat">📝 Cheat Sheet</a>
+  <div class="grp">Practice</div>
+  <a href="#glossary">📖 Jargon Cards</a>
+  <a href="#games">🎮 Game Arcade</a>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="bubbles"><span style="right:8%;top:10%">SELECT</span><span style="right:25%;bottom:12%;animation-delay:1s">JOIN</span><span style="right:4%;bottom:30%;animation-delay:2s">WHERE</span></div>
+  <h1>SQL Quest 🧭</h1>
+  <p>Learn to talk to databases in plain, almost-English commands. Read a little, play with live labs, win XP in quizzes &amp; games.</p>
+  <div class="chips"><span class="chip">⏱ ~60 min</span><span class="chip">🧪 3 live labs</span><span class="chip">🎮 4 games</span><span class="chip">📖 Hover dotted words for jargon help</span></div>
+</div>
+
+<!-- INTRO -->
+<section id="intro">
+  <h2><span class="num">1</span> What is SQL, really?</h2>
+  <p class="lead">Every app you use — Instagram, Swiggy, your college portal — stores information somewhere. That "somewhere" is a <span class="j" tabindex="0" data-tip="Database: an organised collection of data stored so it can be searched, updated and managed efficiently.">database</span>. SQL is how you talk to it.</p>
+
+  <div class="card">
+    <p><b>SQL</b> = <b>S</b>tructured <b>Q</b>uery <b>L</b>anguage (say "S-Q-L" or "sequel"). A <span class="j" tabindex="0" data-tip="Query: a question or instruction you send to the database, e.g. 'give me all students from Mysuru'.">query</span> is just a sentence you send to the database. It's <i>declarative</i>: you say <b>what</b> you want, not <b>how</b> to find it.</p>
+    <p>It works on a <span class="j" tabindex="0" data-tip="RDBMS (Relational Database Management System): software like MySQL, PostgreSQL, SQLite, Oracle or SQL Server that stores data in related tables and understands SQL.">relational database</span> — data kept in tables that can be linked together. Think of an Excel workbook with superpowers.</p>
+  </div>
+
+  <div class="analogy">
+    <div class="a"><div class="e">🗄️</div><b>Database</b><small>The whole filing cabinet</small></div>
+    <div class="a"><div class="e">📒</div><b>Table</b><small>One register (e.g. Students)</small></div>
+    <div class="a"><div class="e">🧍</div><b>Row / Record</b><small>One student's entry</small></div>
+    <div class="a"><div class="e">🏷️</div><b>Column / Field</b><small>One property (name, marks…)</small></div>
+  </div>
+
+  <div class="callout tip"><b class="t">💡 Why learn it?</b>SQL has been around since the 1970s and is still one of the most requested skills in interviews, backend, data and analytics jobs. Learn it once, use it everywhere.</div>
+
+  <h3>The four big families of SQL commands</h3>
+  <div class="grid2">
+    <div class="card"><b>DQL</b> — <span class="j" tabindex="0" data-tip="Data Query Language: commands that only READ data. Mainly SELECT.">Query</span><br><code>SELECT</code></div>
+    <div class="card"><b>DML</b> — <span class="j" tabindex="0" data-tip="Data Manipulation Language: commands that change the DATA inside tables.">Manipulation</span><br><code>INSERT</code> <code>UPDATE</code> <code>DELETE</code></div>
+    <div class="card"><b>DDL</b> — <span class="j" tabindex="0" data-tip="Data Definition Language: commands that change the STRUCTURE (the blueprint) of the database.">Definition</span><br><code>CREATE</code> <code>ALTER</code> <code>DROP</code></div>
+    <div class="card"><b>DCL</b> — <span class="j" tabindex="0" data-tip="Data Control Language: commands that decide WHO is allowed to do WHAT.">Control</span><br><code>GRANT</code> <code>REVOKE</code></div>
+  </div>
+</section>
+
+<!-- TABLES -->
+<section id="tables">
+  <h2><span class="num">2</span> Meet our sample data</h2>
+  <p class="lead">Every example in this guide uses these two tables. Spend 30 seconds looking at them — everything else builds on them.</p>
+  <div class="tblname">📒 students <span class="tag pk">PK = id</span> <span class="tag fk">FK = dept_id</span></div>
+  <div class="card" style="padding:0;overflow:auto" id="tblStudents"></div>
+  <div class="tblname">🏫 departments <span class="tag pk">PK = dept_id</span></div>
+  <div class="card" style="padding:0;overflow:auto;max-width:360px" id="tblDepts"></div>
+  <div class="callout warn"><b class="t">👀 Spot the oddities</b><b>Dev</b> has no department (<span class="j" tabindex="0" data-tip="NULL: a special marker meaning 'unknown / missing / not applicable'. It is NOT zero and NOT an empty string.">NULL</span>), and the <b>CIVIL</b> department has no students. We did this on purpose — they make JOINs and NULL handling interesting later!</div>
+  <details class="card">
+    <summary><b>🧪 Want to run these for real?</b> (click to open the setup script)</summary>
+    <p>Paste this into <b>SQLite Online</b>, <b>DB Fiddle</b>, <b>DB Browser for SQLite</b>, or any MySQL/PostgreSQL client and run every example yourself.</p>
+<pre class="sql" id="seed">CREATE TABLE departments (
+  dept_id   INT PRIMARY KEY,
+  dept_name VARCHAR(30) NOT NULL
+);
+CREATE TABLE students (
+  id      INT PRIMARY KEY,
+  name    VARCHAR(50) NOT NULL,
+  dept_id INT REFERENCES departments(dept_id),
+  marks   INT,
+  city    VARCHAR(30),
+  age     INT
+);
+INSERT INTO departments VALUES (1,'CSE'),(2,'ECE'),(3,'MECH'),(4,'CIVIL');
+INSERT INTO students VALUES
+ (1,'Asha',1,88,'Bengaluru',19),(2,'Ravi',2,72,'Mysuru',20),
+ (3,'Meera',1,95,'Chennai',19),(4,'Kiran',3,64,'Bengaluru',21),
+ (5,'Zoya',2,81,'Hyderabad',20),(6,'Dev',NULL,58,'Pune',22),
+ (7,'Isha',1,77,'Mysuru',20),(8,'Neel',3,90,'Chennai',21);</pre>
+  </details>
+</section>
+
+<!-- SELECT -->
+<section id="select">
+  <h2><span class="num">3</span> SELECT — asking questions</h2>
+  <p class="lead">The command you'll write 90% of the time. Pattern: <b>SELECT</b> <i>what you want</i> <b>FROM</b> <i>which table</i>.</p>
+
+<pre class="sql">-- every column, every row  (* means "everything")
+SELECT * FROM students;
+
+-- only some columns
+SELECT name, city FROM students LIMIT 3;</pre>
+<div class="outlabel">Result of the second query</div>
+<div class="out" data-out="name,city|Asha,Bengaluru|Ravi,Mysuru|Meera,Chennai"></div>
+
+  <h3>Handy tricks</h3>
+<pre class="sql">-- DISTINCT removes duplicates
+SELECT DISTINCT city FROM students;</pre>
+<div class="out" data-out="city|Bengaluru|Mysuru|Chennai|Hyderabad|Pune"></div>
+
+<pre class="sql">-- AS gives a column a nickname (an alias); you can also do maths
+SELECT name AS student, marks + 5 AS grace_marks FROM students LIMIT 2;</pre>
+<div class="out" data-out="student,grace_marks|Asha,93|Ravi,77"></div>
+
+  <div class="callout"><b class="t">📖 Jargon check</b>A <span class="j" tabindex="0" data-tip="Clause: one building block of a query, like SELECT, FROM or WHERE. A query is made of clauses.">clause</span> is a building block (SELECT, FROM…). An <span class="j" tabindex="0" data-tip="Alias: a temporary nickname for a column or table that exists only for that query.">alias</span> is a temporary nickname. SQL keywords are <b>not case-sensitive</b>, but writing them in CAPS makes queries easier to read. End statements with <code>;</code></div>
+
+  <div class="lab" id="lab1"></div>
+  <div class="quiz" data-quiz="select"></div>
+</section>
+
+<!-- WHERE -->
+<section id="where">
+  <h2><span class="num">4</span> WHERE — filtering rows</h2>
+  <p class="lead">Without WHERE you get every row. With it, you get only the rows that pass your test — like a bouncer at a club. 🕴️</p>
+
+<pre class="sql">SELECT name, marks FROM students WHERE marks >= 85;</pre>
+<div class="out" data-out="name,marks|Asha,88|Meera,95|Neel,90"></div>
+
+  <div class="card">
+    <b>Comparison operators</b>
+    <table class="t" style="margin-top:8px"><tr><th>Operator</th><th>Meaning</th></tr>
+    <tr><td><code>=</code></td><td>equals (just one <code>=</code>, not two!)</td></tr>
+    <tr><td><code>&lt;&gt;</code> or <code>!=</code></td><td>not equal</td></tr>
+    <tr><td><code>&gt;  &lt;  &gt;=  &lt;=</code></td><td>greater, less, or equal versions</td></tr>
+    <tr><td><code>AND / OR / NOT</code></td><td>combine conditions</td></tr>
+    <tr><td><code>IN (a,b,c)</code></td><td>matches any value in the list</td></tr>
+    <tr><td><code>BETWEEN a AND b</code></td><td>in a range, both ends included</td></tr>
+    <tr><td><code>LIKE</code></td><td>pattern match: <code>%</code> = any characters, <code>_</code> = exactly one</td></tr>
+    <tr><td><code>IS NULL / IS NOT NULL</code></td><td>test for missing values</td></tr></table>
+  </div>
+
+<pre class="sql">SELECT name, city FROM students WHERE city IN ('Mysuru', 'Chennai');</pre>
+<div class="out" data-out="name,city|Ravi,Mysuru|Meera,Chennai|Isha,Mysuru|Neel,Chennai"></div>
+
+<pre class="sql">SELECT name, marks FROM students WHERE marks BETWEEN 70 AND 85;</pre>
+<div class="out" data-out="name,marks|Ravi,72|Zoya,81|Isha,77"></div>
+
+<pre class="sql">-- names that END with the letter a
+SELECT name FROM students WHERE name LIKE '%a';</pre>
+<div class="out" data-out="name|Asha|Meera|Zoya|Isha"></div>
+
+  <div class="callout bad"><b class="t">🚨 The NULL trap (everyone falls for it once)</b>
+    <code>WHERE dept_id = NULL</code> returns <b>nothing</b>, ever. NULL means "unknown", and nothing is equal to unknown — not even another NULL. Use <code>IS NULL</code>. Likewise, <code>dept_id &lt;&gt; 1</code> will <b>skip</b> Dev, because comparing unknown to 1 gives "unknown", not "true".</div>
+<pre class="sql">SELECT name FROM students WHERE dept_id IS NULL;</pre>
+<div class="out" data-out="name|Dev"></div>
+
+  <div class="quiz" data-quiz="where"></div>
+</section>
+
+<!-- ORDER -->
+<section id="order">
+  <h2><span class="num">5</span> ORDER BY &amp; LIMIT — sorting and trimming</h2>
+  <p class="lead">Databases don't promise any order unless you ask for one. <b>ORDER BY</b> sorts; <b>LIMIT</b> keeps only the first N rows — perfect for "Top 3" lists. 🏆</p>
+<pre class="sql">SELECT name, marks FROM students ORDER BY marks DESC LIMIT 3;</pre>
+<div class="out" data-out="name,marks|Meera,95|Neel,90|Asha,88"></div>
+  <ul>
+    <li><code>ASC</code> = smallest first (default), <code>DESC</code> = largest first.</li>
+    <li>Sort by several columns: <code>ORDER BY city ASC, marks DESC</code> — sort by city, and break ties using marks.</li>
+    <li>Some databases (SQL Server) use <code>TOP 3</code> and Oracle uses <code>FETCH FIRST 3 ROWS ONLY</code> instead of LIMIT — same idea, different dialect. A <span class="j" tabindex="0" data-tip="Dialect: each database vendor's slightly different flavour of SQL. The basics are the same everywhere; details differ.">dialect</span> is just a flavour of SQL.</li>
+  </ul>
+  <div class="quiz" data-quiz="order"></div>
+</section>
+
+<!-- AGGREGATE -->
+<section id="aggregate">
+  <h2><span class="num">6</span> Aggregate functions — crunching many rows into one</h2>
+  <p class="lead">An <span class="j" tabindex="0" data-tip="Aggregate function: takes MANY rows and squashes them into ONE value, e.g. a total or an average.">aggregate function</span> squashes a pile of rows into a single answer.</p>
+  <div class="grid2">
+    <div class="card"><code>COUNT(*)</code> how many rows<br><code>COUNT(col)</code> how many <b>non-NULL</b> values</div>
+    <div class="card"><code>SUM(col)</code> total<br><code>AVG(col)</code> average</div>
+    <div class="card"><code>MIN(col)</code> smallest<br><code>MAX(col)</code> largest</div>
+  </div>
+<pre class="sql">SELECT COUNT(*) AS total, ROUND(AVG(marks), 1) AS avg_marks, MAX(marks) AS top
+FROM students;</pre>
+<div class="out" data-out="total,avg_marks,top|8,78.1,95"></div>
+  <div class="callout tip"><b class="t">💡 COUNT(*) vs COUNT(dept_id)</b>On our table <code>COUNT(*)</code> is 8 but <code>COUNT(dept_id)</code> is <b>7</b> — aggregates quietly ignore NULLs (except COUNT(*)).</div>
+  <div class="quiz" data-quiz="aggregate"></div>
+</section>
+
+<!-- GROUP BY -->
+<section id="groupby">
+  <h2><span class="num">7</span> GROUP BY &amp; HAVING — stats per category</h2>
+  <p class="lead">"How many students per city?" "Average marks per department?" — that's GROUP BY. It sorts rows into buckets, then runs the aggregate on <i>each bucket</i>. 🪣</p>
+<pre class="sql">SELECT city, COUNT(*) AS students
+FROM students
+GROUP BY city;</pre>
+<div class="out" data-out="city,students|Bengaluru,2|Mysuru,2|Chennai,2|Hyderabad,1|Pune,1"></div>
+
+  <div class="callout"><b class="t">🧠 The golden rule</b>Every column in your SELECT must either appear in <code>GROUP BY</code> <b>or</b> be wrapped in an aggregate function. Otherwise the database can't decide which value to show for the bucket.</div>
+
+  <h3>WHERE vs HAVING</h3>
+  <div class="grid2">
+    <div class="card"><b>WHERE</b> filters <b>rows</b> <u>before</u> grouping.<br><small>"Ignore students under 60."</small></div>
+    <div class="card"><b>HAVING</b> filters <b>groups</b> <u>after</u> aggregating.<br><small>"Keep only departments whose average &gt; 80."</small></div>
+  </div>
+<pre class="sql">SELECT dept_id, ROUND(AVG(marks), 2) AS avg_marks
+FROM students
+GROUP BY dept_id
+HAVING AVG(marks) > 80;</pre>
+<div class="out" data-out="dept_id,avg_marks|1,86.67"></div>
+
+  <div class="lab" id="lab2"></div>
+  <div class="quiz" data-quiz="groupby"></div>
+</section>
+
+<!-- DML -->
+<section id="dml">
+  <h2><span class="num">8</span> INSERT, UPDATE, DELETE — changing data</h2>
+  <p class="lead">So far we only <i>looked</i>. Now we <i>change</i> things. With great power comes great responsibility. 🕷️</p>
+<pre class="sql">-- add a new row
+INSERT INTO students (id, name, dept_id, marks, city, age)
+VALUES (9, 'Tara', 2, 85, 'Mysuru', 19);
+
+-- change existing rows
+UPDATE students SET marks = 90 WHERE name = 'Ravi';
+
+-- remove rows
+DELETE FROM students WHERE id = 6;</pre>
+  <div class="callout bad"><b class="t">☠️ Always, always, ALWAYS use WHERE with UPDATE and DELETE</b>
+    <code>UPDATE students SET marks = 0;</code> sets <b>everyone's</b> marks to zero. <code>DELETE FROM students;</code> wipes the whole table. Pro habit: first write a <code>SELECT</code> with the same WHERE and check which rows come back, then change it to UPDATE/DELETE.</div>
+  <div class="callout tip"><b class="t">🔄 Jargon: transaction</b>A <span class="j" tabindex="0" data-tip="Transaction: a group of SQL steps treated as ONE unit — either all succeed (COMMIT) or all are undone (ROLLBACK). Think bank transfer: debit and credit must both happen.">transaction</span> lets you wrap changes in <code>BEGIN</code> … <code>COMMIT</code> (save) or <code>ROLLBACK</code> (undo). It's your safety net.</div>
+  <div class="quiz" data-quiz="dml"></div>
+</section>
+
+<!-- DDL -->
+<section id="ddl">
+  <h2><span class="num">9</span> CREATE TABLE &amp; data types</h2>
+  <p class="lead">Before storing data, you design the blueprint — the <span class="j" tabindex="0" data-tip="Schema: the blueprint of a database — its tables, columns, data types and relationships.">schema</span>.</p>
+<pre class="sql">CREATE TABLE courses (
+  course_id  INT          PRIMARY KEY,
+  title      VARCHAR(80)  NOT NULL,
+  credits    INT          DEFAULT 3 CHECK (credits > 0),
+  fee        DECIMAL(8,2),
+  start_date DATE
+);</pre>
+  <div class="card" style="overflow:auto">
+    <table class="t"><tr><th>Type</th><th>Stores</th><th>Example</th></tr>
+    <tr><td><code>INT</code></td><td>whole numbers</td><td>42</td></tr>
+    <tr><td><code>DECIMAL(8,2)</code></td><td>exact decimals (8 digits total, 2 after the point) — use for money</td><td>1499.50</td></tr>
+    <tr><td><code>VARCHAR(n)</code></td><td>text up to n characters</td><td>'Asha'</td></tr>
+    <tr><td><code>DATE</code> / <code>TIMESTAMP</code></td><td>dates / date + time</td><td>'2026-11-22'</td></tr>
+    <tr><td><code>BOOLEAN</code></td><td>true / false</td><td>TRUE</td></tr></table>
+  </div>
+  <p><b>Constraints rule the table:</b> <code>NOT NULL</code> (value required), <code>UNIQUE</code> (no duplicates), <code>DEFAULT</code> (fallback value), <code>CHECK</code> (custom rule). A <span class="j" tabindex="0" data-tip="Constraint: a rule the database enforces automatically so bad data can't get in.">constraint</span> is a bouncer built into the table itself.</p>
+  <h3>DELETE vs TRUNCATE vs DROP</h3>
+  <div class="grid2">
+    <div class="card"><code>DELETE</code> removes <b>some or all rows</b>, can use WHERE, can be rolled back (usually).</div>
+    <div class="card"><code>TRUNCATE</code> quickly empties <b>all rows</b>, keeps the table.</div>
+    <div class="card"><code>DROP TABLE</code> destroys <b>the table itself</b> — rows and structure.</div>
+    <div class="card"><code>ALTER TABLE</code> modifies structure, e.g. <code>ADD COLUMN email VARCHAR(80)</code>.</div>
+  </div>
+  <div class="quiz" data-quiz="ddl"></div>
+</section>
+
+<!-- KEYS -->
+<section id="keys">
+  <h2><span class="num">10</span> Keys — how tables recognise each other</h2>
+  <p class="lead">Imagine two students named "Asha". How does the database tell them apart? With a key. 🔑</p>
+  <div class="grid2">
+    <div class="card"><h3>🥇 Primary Key (PK)</h3><p>A column whose value <b>uniquely identifies each row</b>. Never duplicate, never NULL. One per table. Example: <code>students.id</code>.</p></div>
+    <div class="card"><h3>🔗 Foreign Key (FK)</h3><p>A column that <b>points to the primary key of another table</b>. It creates the link. Example: <code>students.dept_id</code> → <code>departments.dept_id</code>.</p></div>
+  </div>
+  <div class="callout"><b class="t">🛡️ Referential integrity</b>A foreign key stops you from adding a student with <code>dept_id = 99</code> if no department 99 exists, and blocks deleting a department that students still belong to. The <span class="j" tabindex="0" data-tip="Referential integrity: the guarantee that every foreign key value points to a row that really exists.">database protects itself</span>.</div>
+  <p><b>Why split data into two tables?</b> Storing "Computer Science &amp; Engineering" in every student row wastes space and invites typos. Store it once, point to it by ID. This idea is called <span class="j" tabindex="0" data-tip="Normalization: organising data into separate related tables to remove repetition and avoid inconsistencies.">normalization</span>.</p>
+  <div class="quiz" data-quiz="keys"></div>
+</section>
+
+<!-- JOINS -->
+<section id="joins">
+  <h2><span class="num">11</span> JOINs — stitching tables together</h2>
+  <p class="lead">Because data lives in separate tables, we need a way to put it back together in a query. A <span class="j" tabindex="0" data-tip="JOIN: combines rows from two tables by matching values in a related column, usually a foreign key to a primary key.">JOIN</span> does exactly that, matching rows using the <code>ON</code> condition.</p>
+<pre class="sql">SELECT s.name, d.dept_name
+FROM students s
+INNER JOIN departments d ON s.dept_id = d.dept_id;</pre>
+  <p style="margin-top:6px"><small>👆 <code>s</code> and <code>d</code> are table aliases — short nicknames so you type less.</small></p>
+
+  <div class="lab" id="joinlab"></div>
+
+  <div class="grid2">
+    <div class="card"><b>INNER JOIN</b> — only rows that match on <b>both</b> sides.</div>
+    <div class="card"><b>LEFT JOIN</b> — <b>all</b> left rows; unmatched right side becomes NULL.</div>
+    <div class="card"><b>RIGHT JOIN</b> — <b>all</b> right rows; unmatched left side becomes NULL.</div>
+    <div class="card"><b>FULL OUTER JOIN</b> — everything from both sides.</div>
+  </div>
+  <div class="callout tip"><b class="t">🧩 Real-life use</b>"Show departments that have <b>no</b> students": <code>LEFT JOIN</code> from departments to students, then add <code>WHERE s.id IS NULL</code>. Try the LEFT/RIGHT toggle above to see why it works!</div>
+  <div class="quiz" data-quiz="joins"></div>
+</section>
+
+<!-- SAFETY -->
+<section id="safety">
+  <h2><span class="num">12</span> Staying safe: SQL injection 🛡️</h2>
+  <p class="lead">The #1 beginner mistake in real apps: gluing user input directly into a query string.</p>
+  <div class="callout bad"><b class="t">⚠️ DEVELOPMENT ONLY - NOT SECURE FOR PRODUCTION</b>The example below is intentionally <b>vulnerable</b> so you can recognise it. Never ship code like this.</div>
+<pre class="plain"># ❌ VULNERABLE — string concatenation
+name = input("Enter name: ")
+query = "SELECT * FROM students WHERE name = '" + name + "'"
+cursor.execute(query)
+
+# An attacker types:   x' OR '1'='1
+# The database runs:   SELECT * FROM students WHERE name = 'x' OR '1'='1'
+# → '1'='1' is always true, so EVERY row leaks.</pre>
+  <p style="margin-top:14px"><span class="j" tabindex="0" data-tip="SQL injection: an attack where malicious input is treated as SQL code, letting attackers read, change or delete data they shouldn't touch.">SQL injection</span> happens when input is mixed with SQL <i>code</i>. The fix is to keep code and data separate using a <span class="j" tabindex="0" data-tip="Parameterized query (prepared statement): the SQL is sent with placeholders (?) and the values are sent separately, so values can never be interpreted as SQL commands.">parameterized query</span>:</p>
+<pre class="plain"># ✅ SAFE — placeholders (?) keep input as pure data
+name = input("Enter name: ").strip()
+cursor.execute("SELECT * FROM students WHERE name = ?", (name,))</pre>
+  <div class="card">
+    <b>Safety checklist</b>
+    <ul>
+      <li>✅ Always use parameterized queries / an ORM — never string concatenation.</li>
+      <li>✅ Validate input (type, length, allowed characters) <i>before</i> it reaches the database.</li>
+      <li>✅ <b>Least privilege:</b> the app's database user should only get the permissions it needs (e.g. <code>SELECT</code> on specific tables), not admin rights.</li>
+      <li>✅ Keep passwords and connection strings in environment variables or a secrets manager, never in code or Git.</li>
+    </ul>
+  </div>
+  <div class="quiz" data-quiz="safety"></div>
+</section>
+
+<!-- CHEAT -->
+<section id="cheat">
+  <h2><span class="num">13</span> Cheat sheet &amp; the order SQL really runs</h2>
+  <p class="lead">You <b>write</b> SQL in one order, but the database <b>thinks</b> in another. Knowing this explains many "why doesn't this work?" errors.</p>
+  <b>✍️ How you write it</b>
+  <div class="flow"><span>SELECT</span><i>→</i><span>FROM</span><i>→</i><span>WHERE</span><i>→</i><span>GROUP BY</span><i>→</i><span>HAVING</span><i>→</i><span>ORDER BY</span><i>→</i><span>LIMIT</span></div>
+  <b>🧠 How it runs</b>
+  <div class="flow alt"><span>FROM / JOIN</span><i>→</i><span>WHERE</span><i>→</i><span>GROUP BY</span><i>→</i><span>HAVING</span><i>→</i><span>SELECT</span><i>→</i><span>ORDER BY</span><i>→</i><span>LIMIT</span></div>
+  <div class="callout tip"><b class="t">Why it matters</b>WHERE runs <i>before</i> SELECT, so you can't use a SELECT alias inside WHERE. And WHERE runs before grouping, so it can't contain <code>COUNT()</code> or <code>AVG()</code> — that's HAVING's job.</div>
+
+  <div class="cheat">
+    <div class="card"><h4>Read</h4><pre class="sql">SELECT col1, col2
+FROM table
+WHERE condition
+ORDER BY col DESC
+LIMIT 10;</pre></div>
+    <div class="card"><h4>Summarise</h4><pre class="sql">SELECT col, COUNT(*)
+FROM table
+GROUP BY col
+HAVING COUNT(*) > 1;</pre></div>
+    <div class="card"><h4>Change</h4><pre class="sql">INSERT INTO t (a,b) VALUES (1,'x');
+UPDATE t SET a = 2 WHERE id = 1;
+DELETE FROM t WHERE id = 1;</pre></div>
+    <div class="card"><h4>Join</h4><pre class="sql">SELECT a.x, b.y
+FROM a
+LEFT JOIN b ON a.id = b.a_id;</pre></div>
+  </div>
+</section>
+
+<!-- GLOSSARY -->
+<section id="glossary">
+  <h2><span class="num">14</span> Jargon flash-cards 📖</h2>
+  <p class="lead">Click a card to flip it. Search to filter. These words show up in every interview!</p>
+  <input type="text" id="gsearch" placeholder="🔎 Search a term… (try 'key')">
+  <div class="gl" id="gl"></div>
+</section>
+
+<!-- GAMES -->
+<section id="games">
+  <h2><span class="num">15</span> 🎮 Game Arcade</h2>
+  <p class="lead">Earn XP (top right) and climb from <b>Rookie</b> to <b>SQL Wizard</b>. Wrong answers are free — try again!</p>
+
+  <div class="game" id="g1">
+    <h3>🧩 Game 1: Query Builder</h3>
+    <p>Click the pieces in the <b>correct order</b> to build a valid query. Click a placed piece to take it back.</p>
+    <div class="pool" id="g1pool"></div>
+    <div class="answer" id="g1ans"></div>
+    <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn" id="g1check">Check ✔</button><button class="btn ghost" id="g1reset">Reset</button><button class="btn ghost" id="g1next">Next round ▶</button>
+      <span class="msg" id="g1msg"></span>
+    </div>
+  </div>
+
+  <div class="game">
+    <h3>🔮 Game 2: Predict the Output</h3>
+    <p>Run the query in your head against our sample tables. Some are tricky (hint: NULL!).</p>
+    <div class="quiz" id="g2"></div>
+  </div>
+
+  <div class="game">
+    <h3>🐛 Game 3: Bug Hunt</h3>
+    <p>Each query has a bug. Find what's wrong.</p>
+    <div class="quiz" id="g3"></div>
+  </div>
+
+  <div class="game" id="g4">
+    <h3>🃏 Game 4: Jargon Match</h3>
+    <p>Click a term on the left, then its meaning on the right.</p>
+    <div class="matchcols"><div class="mcol" id="g4l"></div><div class="mcol" id="g4r"></div></div>
+    <div style="margin-top:12px"><button class="btn ghost" id="g4new">🔀 New set</button> <span class="msg" id="g4msg"></span></div>
+  </div>
+</section>
+
+<footer>
+  <p>🎉 You now know the core of SQL. Next: practise on SQLite Online, SQLBolt, or LeetCode's database problems, then explore subqueries, indexes and window functions.</p>
+  <p>Made with ❤️ for curious second-years. Your XP is saved in this browser.</p>
+</footer>
+
+</div>
+</main>
+<div id="toast"></div>
+
+<script>
+/* ============ DATA ============ */
+const STUDENTS=[
+ {id:1,name:'Asha',dept_id:1,marks:88,city:'Bengaluru',age:19},
+ {id:2,name:'Ravi',dept_id:2,marks:72,city:'Mysuru',age:20},
+ {id:3,name:'Meera',dept_id:1,marks:95,city:'Chennai',age:19},
+ {id:4,name:'Kiran',dept_id:3,marks:64,city:'Bengaluru',age:21},
+ {id:5,name:'Zoya',dept_id:2,marks:81,city:'Hyderabad',age:20},
+ {id:6,name:'Dev',dept_id:null,marks:58,city:'Pune',age:22},
+ {id:7,name:'Isha',dept_id:1,marks:77,city:'Mysuru',age:20},
+ {id:8,name:'Neel',dept_id:3,marks:90,city:'Chennai',age:21}];
+const DEPTS=[{dept_id:1,dept_name:'CSE'},{dept_id:2,dept_name:'ECE'},{dept_id:3,dept_name:'MECH'},{dept_id:4,dept_name:'CIVIL'}];
+const COLS=['id','name','dept_id','marks','city','age'];
+const NUMERIC=new Set(['id','dept_id','marks','age']);
+
+/* ============ HELPERS ============ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function cell(v){return v===null||v===undefined?'<span class="null">NULL</span>':esc(v)}
+function table(cols,rows){
+  return '<table class="t"><tr>'+cols.map(c=>`<th>${esc(c)}</th>`).join('')+'</tr>'+
+    rows.map(r=>'<tr>'+r.map(v=>`<td>${cell(v)}</td>`).join('')+'</tr>').join('')+'</table>'+
+    `<div class="rowcount">${rows.length} row${rows.length===1?'':'s'}</div>`;
+}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),1800)}
+
+/* ============ SQL HIGHLIGHT ============ */
+const KWS='SELECT|FROM|WHERE|AND|OR|NOT|IN|BETWEEN|LIKE|IS|NULL|ORDER|BY|GROUP|HAVING|LIMIT|DISTINCT|AS|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|PRIMARY|KEY|FOREIGN|REFERENCES|INT|VARCHAR|DATE|DECIMAL|TEXT|DROP|ALTER|ADD|COLUMN|JOIN|INNER|LEFT|RIGHT|FULL|OUTER|ON|ASC|DESC|DEFAULT|UNIQUE|CHECK|TRUNCATE|GRANT|TO|BEGIN|COMMIT|ROLLBACK';
+const FNS='COUNT|AVG|SUM|MIN|MAX|ROUND|UPPER|LOWER';
+const HL=new RegExp("(--[^\\n]*)|('(?:[^']|'')*')|\\b(\\d+(?:\\.\\d+)?)\\b|\\b("+FNS+")(?=\\s*\\()|\\b("+KWS+")\\b","gi");
+function highlight(src){
+  return esc(src).replace(HL,(m,cm,str,num,fn,kw)=>cm?`<span class="cm">${cm}</span>`:str?`<span class="str">${str}</span>`:num?`<span class="num">${num}</span>`:fn?`<span class="fn">${fn}</span>`:`<span class="kw">${kw}</span>`);
+}
+function decorate(pre,isSql){
+  const raw=pre.textContent;
+  pre.innerHTML='<code>'+(isSql?highlight(raw):esc(raw))+'</code>';
+  const b=el('button','copy','Copy');
+  b.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(raw).then(()=>{b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy',1200)})};
+  pre.appendChild(b);
+}
+
+/* ============ STATE / XP ============ */
+let state={xp:0,done:{}};
+try{const s=JSON.parse(localStorage.getItem('sqlquest')||'null');if(s&&typeof s.xp==='number')state=s}catch(e){}
+const LEVELS=[[0,'🐣 Rookie'],[60,'🎒 Query Cadet'],[160,'⚔️ Join Jedi'],[300,'🧙 SQL Wizard']];
+function save(){try{localStorage.setItem('sqlquest',JSON.stringify(state))}catch(e){}}
+function renderXP(){
+  let i=0;LEVELS.forEach((l,k)=>{if(state.xp>=l[0])i=k});
+  $('#lvl').textContent=LEVELS[i][1];$('#xpTxt').textContent=state.xp+' XP';
+  const lo=LEVELS[i][0],hi=LEVELS[i+1]?LEVELS[i+1][0]:lo+1;
+  $('#xpFill').style.width=(LEVELS[i+1]?Math.min(100,(state.xp-lo)/(hi-lo)*100):100)+'%';
+}
+function award(id,full,part,tried){
+  if(state.done[id])return;
+  state.done[id]=1;const gain=tried?part:full;state.xp+=gain;save();
+  const before=$('#lvl').textContent;renderXP();
+  toast(`+${gain} XP ${gain===full?'🎉':'👍'}`);
+  if($('#lvl').textContent!==before)setTimeout(()=>toast('Level up! '+$('#lvl').textContent),1900);
+}
+
+/* ============ MCQ ENGINE ============ */
+function mcq(container,items,prefix){
+  items.forEach((it,n)=>{
+    const id=prefix+n;const box=el('div','q');
+    box.innerHTML=`<p>${it.q}</p>`+(it.code?`<pre class="sql">${esc(it.code)}</pre>`:'');
+    if(it.code)decorate($('pre',box),true);
+    const opts=el('div','opts');let tried=false;
+    shuffle([it.ok,...it.bad]).forEach(t=>{
+      const b=el('button','opt',esc(t));
+      b.onclick=()=>{
+        if(b.classList.contains('good')||b.classList.contains('bad'))return;
+        if($('.opt.good',opts))return;
+        if(t===it.ok){b.classList.add('good');$$('.opt',opts).forEach(x=>x.disabled=true);why.classList.add('show');award(id,10,3,tried)}
+        else{b.classList.add('bad');tried=true;why.classList.add('show')}
+      };
+      opts.appendChild(b);
+    });
+    const why=el('div','why','💬 '+it.why);
+    box.append(opts,why);container.appendChild(box);
+  });
+}
+
+/* ============ QUIZ CONTENT ============ */
+const QUIZ={
+select:[
+ {q:'Which query returns <b>all columns</b> of the students table?',ok:'SELECT * FROM students;',bad:['GET ALL FROM students;','SELECT ALL students;','SHOW students;'],why:'<code>*</code> is the wildcard for "every column".'},
+ {q:'What does <code>SELECT DISTINCT city FROM students;</code> do?',ok:'Lists each city only once',bad:['Deletes duplicate cities from the table','Counts the cities','Sorts the cities'],why:'DISTINCT only changes the <i>result</i>; the table is untouched.'},
+ {q:'<code>SELECT name AS student FROM students;</code> — what is <code>student</code>?',ok:'An alias (temporary nickname) for the column in the result',bad:['A new table','A new column saved in the table','A database'],why:'Aliases exist only for that query.'}],
+where:[
+ {q:'Which finds students with marks <b>above 80</b>?',ok:'SELECT * FROM students WHERE marks > 80;',bad:['SELECT * FROM students IF marks > 80;','SELECT * FROM students HAVING marks > 80;','SELECT marks > 80 FROM students;'],why:'WHERE filters rows. (HAVING is for groups.)'},
+ {q:'How do you find students with <b>no department</b>?',ok:'WHERE dept_id IS NULL',bad:['WHERE dept_id = NULL','WHERE dept_id = 0','WHERE dept_id = \'\''],why:'NULL is "unknown"; only <code>IS NULL</code> can test for it.'},
+ {q:'<code>WHERE name LIKE \'A%\'</code> matches…',ok:'Names starting with A',bad:['Names ending with A','Names containing exactly one letter','Only the name "A%"'],why:'<code>%</code> stands for "any number of characters".'},
+ {q:'How many rows does <code>SELECT * FROM students WHERE dept_id &lt;&gt; 1;</code> return? (remember Dev!)',ok:'4',bad:['5','8','3'],why:'Not-in-dept-1: Ravi, Zoya, Kiran, Neel = 4. Dev is skipped because NULL &lt;&gt; 1 is unknown, not true.'}],
+order:[
+ {q:'Show the <b>highest</b> marks first:',ok:'ORDER BY marks DESC',bad:['ORDER BY marks ASC','SORT marks DESC','ORDER marks HIGH'],why:'DESC = descending (largest → smallest).'},
+ {q:'Which clause comes <b>first</b> when writing a query?',ok:'WHERE (before ORDER BY)',bad:['ORDER BY (before WHERE)','LIMIT (before WHERE)','HAVING (before FROM)'],why:'Written order: SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT.'},
+ {q:'What does <code>LIMIT 5</code> do?',ok:'Returns at most 5 rows',bad:['Returns exactly 5 columns','Deletes all but 5 rows','Stops the query after 5 seconds'],why:'It trims the result, not the table.'}],
+aggregate:[
+ {q:'<code>SELECT COUNT(dept_id) FROM students;</code> returns…',ok:'7',bad:['8','1','0'],why:'COUNT(column) skips NULLs. Dev has NULL dept_id, so 8 − 1 = 7.'},
+ {q:'Which function finds the <b>largest</b> value?',ok:'MAX()',bad:['TOP()','BIG()','HIGHEST()'],why:'MAX and MIN are the extremes.'},
+ {q:'An aggregate function turns…',ok:'many rows into one value',bad:['one row into many','text into numbers','a table into a database'],why:'That\'s what "aggregate" means: to combine.'}],
+groupby:[
+ {q:'Which clause filters <b>groups</b> after aggregation?',ok:'HAVING',bad:['WHERE','LIMIT','DISTINCT'],why:'WHERE runs before grouping, so it can\'t see group totals.'},
+ {q:'<code>SELECT city, COUNT(*) FROM students GROUP BY city;</code> returns how many rows?',ok:'5 (one per distinct city)',bad:['8','2','1'],why:'Bengaluru, Mysuru, Chennai, Hyderabad, Pune.'},
+ {q:'Which is valid?',ok:'SELECT dept_id, AVG(marks) FROM students GROUP BY dept_id;',bad:['SELECT dept_id, name, AVG(marks) FROM students GROUP BY dept_id;','SELECT * FROM students GROUP BY dept_id;','SELECT AVG(marks) GROUP BY dept_id;'],why:'Every selected column must be grouped or aggregated; <code>name</code> is neither.'}],
+dml:[
+ {q:'<code>UPDATE students SET marks = 0;</code> (no WHERE) will…',ok:'Set marks to 0 for EVERY student',bad:['Do nothing','Throw an error','Update only the first row'],why:'No WHERE = every row. Always check with SELECT first!'},
+ {q:'Which command adds a new row?',ok:'INSERT INTO',bad:['ADD ROW','UPDATE INTO','CREATE ROW'],why:'INSERT INTO table (cols) VALUES (…).'},
+ {q:'A transaction lets you…',ok:'Undo a group of changes with ROLLBACK',bad:['Make queries faster','Copy a table','Encrypt a column'],why:'All steps succeed together, or none do.'}],
+ddl:[
+ {q:'Which is a <b>DDL</b> command?',ok:'CREATE TABLE',bad:['SELECT','INSERT','UPDATE'],why:'DDL changes structure; the others handle data.'},
+ {q:'Best data type for money like 1499.50?',ok:'DECIMAL(8,2)',bad:['VARCHAR(10)','BOOLEAN','DATE'],why:'DECIMAL is exact. Floating-point types can introduce tiny rounding errors.'},
+ {q:'Which destroys the table <b>itself</b>?',ok:'DROP TABLE',bad:['DELETE FROM','TRUNCATE','SELECT INTO'],why:'DROP removes structure + data. DELETE/TRUNCATE only empty it.'}],
+keys:[
+ {q:'A primary key must be…',ok:'Unique and NOT NULL',bad:['Text only','The first column alphabetically','Allowed to repeat'],why:'It identifies each row, so duplicates/NULLs would defeat the purpose.'},
+ {q:'A foreign key…',ok:'References the primary key of another table',bad:['Is a key from another country','Encrypts a table','Must be unique in its own table'],why:'<code>students.dept_id</code> → <code>departments.dept_id</code>.'},
+ {q:'Why store department names in a separate table?',ok:'To avoid repeating data and typos (normalization)',bad:['Because SQL can\'t store text in students','To make the database slower','No real reason'],why:'Store once, reference by ID.'}],
+joins:[
+ {q:'INNER JOIN students↔departments on dept_id returns how many rows?',ok:'7',bad:['8','4','11'],why:'Dev (NULL dept) has no match, and CIVIL has no students, so only 7 matched pairs remain.'},
+ {q:'<code>students LEFT JOIN departments</code> — what happens to Dev?',ok:'Dev appears with dept_name = NULL',bad:['Dev is dropped','Dev is deleted from students','An error occurs'],why:'LEFT JOIN keeps every row from the left table.'},
+ {q:'Which finds departments with <b>no students</b>?',ok:'departments LEFT JOIN students … WHERE students.id IS NULL',bad:['departments INNER JOIN students','students RIGHT JOIN students','SELECT * FROM departments WHERE students = 0'],why:'Unmatched departments get NULL student columns; filter for those.'}],
+safety:[
+ {q:'Best defence against SQL injection?',ok:'Parameterized queries (placeholders)',bad:['Hiding the database name','Using lowercase SQL','Longer table names'],why:'Placeholders keep user input as data, never as code.'},
+ {q:'Your web app\'s database account should have…',ok:'Only the permissions it actually needs',bad:['Full admin rights, to avoid errors','No password, for simplicity','The same login as the developer'],why:'Least privilege limits the damage if something goes wrong.'}]
+};
+$$('.quiz[data-quiz]').forEach(c=>{
+  c.appendChild(el('span','quizhead','🧠 Quick quiz'));
+  mcq(c,QUIZ[c.dataset.quiz],'q-'+c.dataset.quiz+'-');
+});
+
+/* ============ GAMES 2 & 3 ============ */
+mcq($('#g2'),[
+ {q:'How many rows / what value?',code:"SELECT name FROM students\nWHERE city = 'Chennai'\nORDER BY name;",ok:'Meera, Neel',bad:['Neel, Meera','Meera, Neel, Asha','Asha, Meera'],why:'Chennai students are Meera and Neel; sorted A→Z gives Meera first.'},
+ {q:'What is returned?',code:'SELECT MAX(marks) FROM students\nWHERE dept_id = 1;',ok:'95',bad:['88','77','260'],why:'CSE (dept 1): Asha 88, Meera 95, Isha 77 → max 95.'},
+ {q:'What is returned?',code:'SELECT COUNT(*) FROM students\nWHERE dept_id IS NULL;',ok:'1',bad:['0','8','7'],why:'Only Dev has no department.'},
+ {q:'What is returned?',code:'SELECT AVG(marks) FROM students\nWHERE dept_id = 2;',ok:'76.5',bad:['72','81','153'],why:'ECE: (72 + 81) / 2 = 76.5.'},
+ {q:'Who is returned?',code:'SELECT name FROM students\nORDER BY marks DESC\nLIMIT 1;',ok:'Meera',bad:['Dev','Asha','Neel'],why:'Highest marks is 95 → Meera.'},
+ {q:'Tricky! What is returned?',code:'SELECT COUNT(*) FROM students\nWHERE dept_id <> 1;',ok:'4',bad:['5','8','3'],why:'Dev\'s NULL dept_id makes the comparison "unknown", so Dev is excluded. Ravi, Zoya, Kiran, Neel = 4.'}
+],'g2-');
+mcq($('#g3'),[
+ {q:'What\'s the bug?',code:'SELECT * FORM students;',ok:'FORM is a typo for FROM',bad:['Missing WHERE','* is not allowed','Table name must be uppercase'],why:'Syntax error: the keyword is FROM.'},
+ {q:'What\'s the bug?',code:'SELECT * FROM students\nWHERE dept_id = NULL;',ok:'Should use IS NULL',bad:['NULL must be in quotes','Missing GROUP BY','Should be dept_id == NULL'],why:'= NULL is never true. Use IS NULL.'},
+ {q:'What\'s the bug?',code:'SELECT city, name, COUNT(*)\nFROM students\nGROUP BY city;',ok:'name is neither grouped nor aggregated',bad:['COUNT(*) is not allowed with GROUP BY','city should be quoted','Missing LIMIT'],why:'Which Mysuru name should be shown — Ravi or Isha? Add name to GROUP BY or aggregate it.'},
+ {q:'What\'s the bug?',code:'SELECT city FROM students\nWHERE COUNT(*) > 1\nGROUP BY city;',ok:'Aggregates belong in HAVING, after GROUP BY',bad:['COUNT can only be used on numbers','GROUP BY must come first','city needs an alias'],why:'Use GROUP BY city HAVING COUNT(*) > 1.'}
+],'g3-');
+
+/* ============ GAME 1: QUERY BUILDER ============ */
+const ROUNDS=[
+ ['SELECT name, marks','FROM students','WHERE marks > 80','ORDER BY marks DESC','LIMIT 3;'],
+ ['SELECT city, COUNT(*)','FROM students','WHERE marks > 60','GROUP BY city','HAVING COUNT(*) > 1','ORDER BY city;'],
+ ['SELECT s.name, d.dept_name','FROM students s','LEFT JOIN departments d','ON s.dept_id = d.dept_id','WHERE s.marks >= 70;']];
+let r1=0,placed=[];
+function g1render(){
+  const target=ROUNDS[r1];const pool=$('#g1pool'),ans=$('#g1ans');
+  if(!g1render.order||g1render.round!==r1){g1render.order=shuffle(target.map((_,i)=>i));g1render.round=r1;placed=[]}
+  pool.innerHTML='';ans.innerHTML='';ans.className='answer';$('#g1msg').textContent='';
+  g1render.order.filter(i=>!placed.includes(i)).forEach(i=>{const p=el('span','piece',esc(target[i]));p.onclick=()=>{placed.push(i);g1render();};pool.appendChild(p)});
+  placed.forEach((i,k)=>{const p=el('span','piece',esc(target[i]));p.onclick=()=>{placed.splice(k,1);g1render()};ans.appendChild(p)});
+  if(!placed.length)ans.innerHTML='<span style="color:#7f8bb3">⬇ your query appears here</span>';
+}
+$('#g1check').onclick=()=>{
+  const t=ROUNDS[r1];const ans=$('#g1ans');
+  if(placed.length<t.length){$('#g1msg').textContent='Place all pieces first 🙂';return}
+  const ok=placed.every((p,k)=>p===k);
+  ans.classList.remove('ok','no');void ans.offsetWidth;ans.classList.add(ok?'ok':'no');
+  $('#g1msg').textContent=ok?'✅ Perfect! That query runs.':'❌ Not quite. Remember: SELECT → FROM → (JOIN) → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT';
+  if(ok)award('g1-'+r1,15,15,false);
+};
+$('#g1reset').onclick=()=>{placed=[];g1render()};
+$('#g1next').onclick=()=>{r1=(r1+1)%ROUNDS.length;g1render()};
+g1render();
+
+/* ============ GAME 4: JARGON MATCH ============ */
+const GLOSS=[
+ ['Database','An organised collection of stored data','students.db',],
+ ['Table','A grid of rows and columns holding one kind of thing','students'],
+ ['Row (record)','One single entry in a table, e.g. one student','(3, Meera, 1, 95…)'],
+ ['Column (field)','One property stored for every row','marks'],
+ ['Schema','The blueprint: tables, columns, types, relationships','CREATE TABLE …'],
+ ['Query','A question or instruction sent to the database','SELECT * FROM students'],
+ ['Clause','One building block of a query like WHERE or ORDER BY','WHERE marks > 80'],
+ ['Primary Key','Column that uniquely identifies each row; never NULL','id'],
+ ['Foreign Key','Column pointing to the primary key of another table','students.dept_id'],
+ ['NULL','A marker for missing or unknown data (not zero!)','dept_id IS NULL'],
+ ['Alias','A temporary nickname for a column or table','marks AS score'],
+ ['Aggregate function','Squashes many rows into a single value','COUNT(*), AVG(marks)'],
+ ['JOIN','Combines rows from two tables using a matching column','… JOIN departments d ON …'],
+ ['Constraint','A rule the database enforces on data','NOT NULL, UNIQUE, CHECK'],
+ ['Transaction','A group of steps that succeed or fail together','BEGIN … COMMIT'],
+ ['Index','A lookup structure that makes searches much faster, like a book index','CREATE INDEX idx ON students(name)'],
+ ['Normalization','Splitting data into related tables to avoid repetition','departments separate'],
+ ['SQL Injection','An attack that sneaks malicious SQL in through user input','x\' OR \'1\'=\'1'],
+ ['Parameterized query','SQL with placeholders; values sent separately and safely','WHERE name = ?'],
+ ['DDL','Commands that define structure','CREATE, ALTER, DROP'],
+ ['DML','Commands that change data','INSERT, UPDATE, DELETE'],
+ ['RDBMS','Software that stores relational data and understands SQL','MySQL, PostgreSQL, SQLite'],
+ ['Dialect','A vendor\'s own flavour of SQL','LIMIT vs TOP'],
+ ['Referential integrity','Guarantee that foreign keys always point to real rows','no dept_id = 99']
+];
+let sel=null,matched=0,set4=[];
+function g4new(){
+  set4=shuffle(GLOSS).slice(0,6);matched=0;sel=null;$('#g4msg').textContent='';
+  const L=$('#g4l'),R=$('#g4r');L.innerHTML='';R.innerHTML='';
+  shuffle(set4).forEach(g=>{const b=el('button','mitem',esc(g[0]));b.dataset.k=g[0];b.onclick=()=>pick(b,'l');L.appendChild(b)});
+  shuffle(set4).forEach(g=>{const b=el('button','mitem',esc(g[1]));b.dataset.k=g[0];b.onclick=()=>pick(b,'r');R.appendChild(b)});
+}
+function pick(b,side){
+  if(b.classList.contains('done'))return;
+  if(!sel||sel.side===side){ if(sel)sel.b.classList.remove('sel'); sel={b,side}; b.classList.add('sel'); return}
+  const a=sel.b;a.classList.remove('sel');sel=null;
+  if(a.dataset.k===b.dataset.k){a.classList.add('done');b.classList.add('done');matched++;
+    if(matched===6){$('#g4msg').textContent='🎉 All matched!';award('g4',20,20,false)}}
+  else{[a,b].forEach(x=>{x.classList.remove('wrong');void x.offsetWidth;x.classList.add('wrong')});}
+}
+$('#g4new').onclick=g4new;g4new();
+
+/* ============ GLOSSARY CARDS ============ */
+function glRender(q=''){
+  const g=$('#gl');g.innerHTML='';
+  GLOSS.filter(x=>(x[0]+x[1]).toLowerCase().includes(q.toLowerCase())).forEach(x=>{
+    const c=el('div','flip',`<div class="in"><div class="f">${esc(x[0])}<small>tap to flip</small></div><div class="b"><div>${esc(x[1])}</div><code>${esc(x[2])}</code></div></div>`);
+    c.onclick=()=>c.classList.toggle('on');g.appendChild(c);
+  });
+  if(!g.children.length)g.textContent='No terms found.';
+}
+$('#gsearch').addEventListener('input',e=>glRender(e.target.value));glRender();
+
+/* ============ STATIC TABLES / OUTPUTS ============ */
+$('#tblStudents').innerHTML=table(COLS,STUDENTS.map(s=>COLS.map(c=>s[c])));
+$('#tblDepts').innerHTML=table(['dept_id','dept_name'],DEPTS.map(d=>[d.dept_id,d.dept_name]));
+$$('.out[data-out]').forEach(o=>{
+  const parts=o.dataset.out.split('|');const cols=parts[0].split(',');
+  o.innerHTML=table(cols,parts.slice(1).map(r=>r.split(',')));
+});
+$$('pre.sql').forEach(p=>decorate(p,true));
+$$('pre.plain').forEach(p=>decorate(p,false));
+
+/* ============ LAB 1: SELECT/WHERE/ORDER BUILDER ============ */
+(function(){
+  const L=$('#lab1');
+  L.innerHTML=`<h3>🧪 Live Lab 1 — Build a query</h3>
+  <div class="row cols"><label>SELECT</label>${COLS.map(c=>`<label><input type="checkbox" value="${c}" checked> ${c}</label>`).join('')}</div>
+  <div class="row"><label>WHERE</label>
+    <select id="l1c"><option value="">(no filter)</option>${COLS.map(c=>`<option>${c}</option>`).join('')}</select>
+    <select id="l1o">${['=','<>','>','<','>=','<=','LIKE','IS NULL','IS NOT NULL'].map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>
+    <input type="text" id="l1v" size="12" placeholder="value, e.g. 80 or A%"></div>
+  <div class="row"><label>ORDER BY</label>
+    <select id="l1s"><option value="">(none)</option>${COLS.map(c=>`<option>${c}</option>`).join('')}</select>
+    <select id="l1d"><option>ASC</option><option>DESC</option></select>
+    <label>LIMIT</label><input type="number" id="l1l" min="1" max="8" style="width:70px" placeholder="all"></div>
+  <pre class="sql" id="l1sql"></pre><div class="out" id="l1out" style="margin-bottom:0"></div>`;
+  function test(op,a,b,col){
+    if(op==='IS NULL')return a===null;if(op==='IS NOT NULL')return a!==null;
+    if(a===null)return false;                       // NULL compared with anything is never true
+    if(op==='LIKE'){const re=new RegExp('^'+String(b).replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/%/g,'.*').replace(/_/g,'.')+'$','i');return re.test(String(a))}
+    if(NUMERIC.has(col)){if(b===''||isNaN(Number(b)))return false;b=Number(b)}else{a=String(a).toLowerCase();b=String(b).toLowerCase()}
+    return {'=':a===b,'<>':a!==b,'>':a>b,'<':a<b,'>=':a>=b,'<=':a<=b}[op];
+  }
+  function run(){
+    const cols=$$('input[type=checkbox]:checked',L).map(c=>c.value);
+    const wc=$('#l1c').value,op=$('#l1o').value,val=$('#l1v').value;
+    const nov=op.startsWith('IS');$('#l1v').style.display=nov?'none':'';
+    let sql='SELECT '+(cols.length===COLS.length?'*':(cols.join(', ')||'*'))+'\nFROM students';
+    let rows=STUDENTS.slice();
+    if(wc){
+      const lit=(NUMERIC.has(wc)&&op!=='LIKE')?(val===''?'0':val):"'"+val.replace(/'/g,"''")+"'";
+      sql+='\nWHERE '+wc+' '+op+(nov?'':' '+lit);
+      rows=rows.filter(r=>test(op,r[wc],val,wc));
+    }
+    const s=$('#l1s').value;
+    if(s){const d=$('#l1d').value;sql+='\nORDER BY '+s+' '+d;
+      rows.sort((a,b)=>{const x=a[s],y=b[s];if(x===y)return 0;if(x===null)return -1;if(y===null)return 1;return (x>y?1:-1)*(d==='ASC'?1:-1)})}
+    const lim=parseInt($('#l1l').value,10);
+    if(lim>0){sql+='\nLIMIT '+lim;rows=rows.slice(0,lim)}
+    sql+=';';
+    const use=cols.length?cols:COLS;
+    const pre=$('#l1sql');pre.textContent=sql;decorate(pre,true);
+    $('#l1out').innerHTML=table(use,rows.map(r=>use.map(c=>r[c])));
+  }
+  L.addEventListener('input',run);L.addEventListener('change',run);run();
+})();
+
+/* ============ LAB 2: AGGREGATES ============ */
+(function(){
+  const L=$('#lab2');
+  L.innerHTML=`<h3>🧪 Live Lab 2 — Aggregates &amp; GROUP BY</h3>
+  <div class="row"><label>Function</label>
+   <select id="l2f">${['COUNT(*)','COUNT(dept_id)','AVG(marks)','SUM(marks)','MAX(marks)','MIN(marks)'].map(f=>`<option>${f}</option>`).join('')}</select>
+   <label>GROUP BY</label><select id="l2g"><option value="">(no grouping)</option><option>city</option><option>dept_id</option></select>
+   <label>WHERE marks &gt;</label><input type="number" id="l2w" style="width:80px" placeholder="any"></div>
+  <pre class="sql" id="l2sql"></pre><div class="out" id="l2out" style="margin-bottom:0"></div>`;
+  function agg(f,rows){
+    const m=/\((.*)\)/.exec(f)[1];const name=f.split('(')[0];
+    const vals=m==='*'?rows:rows.map(r=>r[m]).filter(v=>v!==null);
+    if(name==='COUNT')return vals.length;
+    if(!vals.length)return null;
+    const n=vals.map(Number);
+    if(name==='AVG')return +(n.reduce((a,b)=>a+b,0)/n.length).toFixed(2);
+    if(name==='SUM')return n.reduce((a,b)=>a+b,0);
+    if(name==='MAX')return Math.max(...n);return Math.min(...n);
+  }
+  function run(){
+    const f=$('#l2f').value,g=$('#l2g').value,w=$('#l2w').value;
+    let rows=STUDENTS.slice(),sql='SELECT '+(g?g+', ':'')+f+'\nFROM students';
+    if(w!==''&&!isNaN(Number(w))){sql+='\nWHERE marks > '+Number(w);rows=rows.filter(r=>r.marks>Number(w))}
+    let cols,data;
+    if(g){sql+='\nGROUP BY '+g;const map=new Map();rows.forEach(r=>{const k=r[g];if(!map.has(k))map.set(k,[]);map.get(k).push(r)});
+      cols=[g,f];data=[...map].map(([k,rs])=>[k,agg(f,rs)])}
+    else{cols=[f];data=[[agg(f,rows)]]}
+    sql+=';';const pre=$('#l2sql');pre.textContent=sql;decorate(pre,true);
+    $('#l2out').innerHTML=table(cols,data);
+  }
+  L.addEventListener('input',run);L.addEventListener('change',run);run();
+})();
+
+/* ============ JOIN LAB ============ */
+(function(){
+  const L=$('#joinlab');
+  L.innerHTML=`<h3>🧪 Live Lab 3 — JOIN visualiser</h3>
+  <div class="seg" id="jseg">${['INNER','LEFT','RIGHT','FULL OUTER'].map((t,i)=>`<button data-t="${t}" class="${i?'':'on'}">${t}</button>`).join('')}</div>
+  <div id="venn"></div><div id="jdesc" style="text-align:center;font-weight:600"></div>
+  <pre class="sql" id="jsql"></pre><div class="out" id="jout" style="margin-bottom:0"></div>`;
+  const desc={'INNER':'Only matching rows (Dev and CIVIL disappear).','LEFT':'All students. Dev gets NULL for dept_name.','RIGHT':'All departments. CIVIL gets NULL for student name.','FULL OUTER':'Everything from both sides, matched where possible.'};
+  function venn(t){
+    const A='#6c5ce7',B='#00b8a9',off='rgba(150,160,200,.12)';
+    const fa=(t==='LEFT'||t==='FULL OUTER')?A:off,fb=(t==='RIGHT'||t==='FULL OUTER')?B:off;
+    return `<svg width="230" height="120" viewBox="0 0 230 120">
+      <defs><clipPath id="cpB"><circle cx="135" cy="60" r="48"/></clipPath></defs>
+      <circle cx="95" cy="60" r="48" fill="${fa}" fill-opacity="${fa===off?1:.75}"/>
+      <circle cx="135" cy="60" r="48" fill="${fb}" fill-opacity="${fb===off?1:.75}"/>
+      <circle cx="95" cy="60" r="48" clip-path="url(#cpB)" fill="${t==='INNER'?'#f59f00':'none'}"/>
+      <circle cx="95" cy="60" r="48" fill="none" stroke="${A}" stroke-width="2.5"/>
+      <circle cx="135" cy="60" r="48" fill="none" stroke="${B}" stroke-width="2.5"/>
+      <text x="62" y="64" font-size="12" font-weight="700" fill="currentColor" text-anchor="middle">students</text>
+      <text x="170" y="64" font-size="11" font-weight="700" fill="currentColor" text-anchor="middle">depts</text></svg>`;
+  }
+  function run(t){
+    $$('#jseg button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+    $('#venn').innerHTML=venn(t);$('#jdesc').textContent=desc[t];
+    const sql=`SELECT s.name, d.dept_name\nFROM students s\n${t} JOIN departments d ON s.dept_id = d.dept_id;`;
+    const pre=$('#jsql');pre.textContent=sql;decorate(pre,true);
+    let rows=[];
+    STUDENTS.forEach(s=>{const d=DEPTS.find(d=>d.dept_id===s.dept_id);
+      if(d)rows.push([s.name,d.dept_name]);else if(t==='LEFT'||t==='FULL OUTER')rows.push([s.name,null])});
+    if(t==='RIGHT'||t==='FULL OUTER')DEPTS.forEach(d=>{if(!STUDENTS.some(s=>s.dept_id===d.dept_id))rows.push([null,d.dept_name])});
+    if(t==='RIGHT'){ // right join lists by department
+      rows=[];DEPTS.forEach(d=>{const ss=STUDENTS.filter(s=>s.dept_id===d.dept_id);if(ss.length)ss.forEach(s=>rows.push([s.name,d.dept_name]));else rows.push([null,d.dept_name])});
+    }
+    $('#jout').innerHTML=table(['name','dept_name'],rows);
+  }
+  $('#jseg').addEventListener('click',e=>{if(e.target.dataset.t)run(e.target.dataset.t)});
+  run('INNER');
+})();
+
+/* ============ CHROME: theme, nav, scroll ============ */
+const root=document.documentElement;
+const saved=(()=>{try{return localStorage.getItem('sqlquest-theme')}catch(e){return null}})();
+const dark=saved?saved==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+root.dataset.theme=dark?'dark':'light';$('#themeBtn').textContent=dark?'☀️':'🌙';
+$('#themeBtn').onclick=()=>{const d=root.dataset.theme!=='dark';root.dataset.theme=d?'dark':'light';$('#themeBtn').textContent=d?'☀️':'🌙';try{localStorage.setItem('sqlquest-theme',d?'dark':'light')}catch(e){}};
+$('#menuBtn').onclick=()=>$('#side').classList.toggle('open');
+$$('#side a').forEach(a=>a.addEventListener('click',()=>$('#side').classList.remove('open')));
+addEventListener('scroll',()=>{const h=document.documentElement;$('#scroll').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
+const links=Object.fromEntries($$('#side a').map(a=>[a.getAttribute('href').slice(1),a]));
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){$$('#side a').forEach(a=>a.classList.remove('on'));links[e.target.id]&&links[e.target.id].classList.add('on')}}),{rootMargin:'-30% 0px -60% 0px'});
+$$('section[id]').forEach(s=>io.observe(s));
+renderXP();
+</script>
+</body>
+</html>
